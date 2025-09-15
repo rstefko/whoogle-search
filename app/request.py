@@ -72,15 +72,32 @@ def send_tor_signal(signal: Signal) -> bool:
     return False
 
 
-def gen_user_agent(is_mobile) -> str:
-    user_agent = os.environ.get('WHOOGLE_USER_AGENT', '')
-    user_agent_mobile = os.environ.get('WHOOGLE_USER_AGENT_MOBILE', '')
-    if user_agent and not is_mobile:
-        return user_agent
+def gen_user_agent(config, is_mobile) -> str:
+    # Define the default PlayStation Portable user agent (replaces Lynx)
+    DEFAULT_UA = 'Mozilla/4.0 (PSP (PlayStation Portable); 2.00)'
 
-    if user_agent_mobile and is_mobile:
-        return user_agent_mobile
+    # If using custom user agent, return the custom string
+    if config.user_agent == 'custom' and config.custom_user_agent:
+        return config.custom_user_agent
 
+    # If using environment configuration
+    if config.user_agent == 'env_conf':
+        if is_mobile:
+            env_ua = os.getenv('WHOOGLE_USER_AGENT_MOBILE', '')
+            if env_ua:
+                return env_ua
+        else:
+            env_ua = os.getenv('WHOOGLE_USER_AGENT', '')
+            if env_ua:
+                return env_ua
+        # If env vars are not set, fall back to default
+        return DEFAULT_UA
+
+    # If using default user agent
+    if config.user_agent == 'default':
+        return DEFAULT_UA
+
+    # If no custom user agent is set, generate a random one (for backwards compatibility)
     firefox = random.choice(['Choir', 'Squier', 'Higher', 'Wire']) + 'fox'
     linux = random.choice(['Win', 'Sin', 'Gin', 'Fin', 'Kin']) + 'ux'
 
@@ -192,10 +209,7 @@ class Request:
         # enable Tor for future requests
         send_tor_signal(Signal.HEARTBEAT)
 
-        self.language = (
-            config.lang_search if config.lang_search else ''
-        )
-
+        self.language = config.lang_search if config.lang_search else ''
         self.country = config.country if config.country else ''
 
         # For setting Accept-language Header
@@ -205,11 +219,13 @@ class Request:
 
         self.mobile = bool(normal_ua) and ('Android' in normal_ua
                                            or 'iPhone' in normal_ua)
-        self.modified_user_agent = gen_user_agent(self.mobile)
-        if not self.mobile:
-            self.modified_user_agent_mobile = gen_user_agent(True)
 
-        # Set up proxy, if previously configured
+        # Generate user agent based on config
+        self.modified_user_agent = gen_user_agent(config, self.mobile)
+        if not self.mobile:
+            self.modified_user_agent_mobile = gen_user_agent(config, True)
+
+        # Set up proxy configuration
         proxy_path = os.environ.get('WHOOGLE_PROXY_LOC', '')
         if proxy_path:
             proxy_type = os.environ.get('WHOOGLE_PROXY_TYPE', '')
@@ -229,6 +245,7 @@ class Request:
                 'http': 'socks5://127.0.0.1:9050',
                 'https': 'socks5://127.0.0.1:9050'
             } if config.tor else {}
+
         self.tor = config.tor
         self.tor_valid = False
         self.root_path = root_path
@@ -308,7 +325,7 @@ class Request:
         now = datetime.now()
         cookies = {
             'CONSENT': 'PENDING+987',
-            'SOCS': 'CAESHAgBEhIaAB', 
+            'SOCS': 'CAESHAgBEhIaAB',
         }
 
         # Validate Tor conn and request new identity if the last one failed

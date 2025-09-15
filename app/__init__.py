@@ -25,9 +25,10 @@ app = Flask(__name__, static_folder=os.path.dirname(
 
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
-dot_env_path = (
-    os.path.join(os.path.dirname(os.path.abspath(__file__)),
-    '../whoogle.env'))
+# look for WHOOGLE_ENV, else look in parent directory
+dot_env_path = os.getenv(
+    "WHOOGLE_DOTENV_PATH",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "../whoogle.env"))
 
 # Load .env file if enabled
 if os.path.exists(dot_env_path):
@@ -176,7 +177,7 @@ for cb_dir in cache_busting_dirs:
 # Templating functions
 app.jinja_env.globals.update(clean_query=clean_query)
 app.jinja_env.globals.update(
-    cb_url=lambda f: app.config['CACHE_BUSTING_MAP'][f])
+    cb_url=lambda f: app.config['CACHE_BUSTING_MAP'][f.lower()])
 
 # Attempt to acquire tor identity, to determine if Tor config is available
 send_tor_signal(Signal.HEARTBEAT)

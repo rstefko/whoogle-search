@@ -27,7 +27,8 @@ BLACKLIST = [
     'Reklama', 'Реклама', 'Anunț', '광고', 'annons', 'Annonse', 'Iklan',
     '広告', 'Augl.', 'Mainos', 'Advertentie', 'إعلان', 'Գովազդ', 'विज्ञापन',
     'Reklam', 'آگهی', 'Reklāma', 'Reklaam', 'Διαφήμιση', 'מודעה', 'Hirdetés',
-    'Anúncio', 'Quảng cáo','โฆษณา', 'sponsored', 'patrocinado', 'gesponsert'
+    'Anúncio', 'Quảng cáo', 'โฆษณา', 'sponsored', 'patrocinado', 'gesponsert',
+    'Sponzorováno', '스폰서', 'Gesponsord', 'Sponsorisé'
 ]
 
 SITE_ALTS = {
@@ -41,7 +42,8 @@ SITE_ALTS = {
     'imgur.com': os.getenv('WHOOGLE_ALT_IMG', 'farside.link/rimgo'),
     'wikipedia.org': os.getenv('WHOOGLE_ALT_WIKI', 'farside.link/wikiless'),
     'imdb.com': os.getenv('WHOOGLE_ALT_IMDB', 'farside.link/libremdb'),
-    'quora.com': os.getenv('WHOOGLE_ALT_QUORA', 'farside.link/quetre')
+    'quora.com': os.getenv('WHOOGLE_ALT_QUORA', 'farside.link/quetre'),
+    'stackoverflow.com': os.getenv('WHOOGLE_ALT_SO', 'farside.link/anonymousoverflow')
 }
 
 # Include custom site redirects from WHOOGLE_REDIRECTS
@@ -97,7 +99,7 @@ def bold_search_terms(response: str, query: str) -> BeautifulSoup:
         else:
             reg_pattern = fr'\b((?![{{}}<>-]){target_word}(?![{{}}<>-]))\b'
 
-        if re.match('.*[@_!#$%^&*()<>?/\|}{~:].*', target_word) or (
+        if re.match(r'.*[@_!#$%^&*()<>?/\|}{~:].*', target_word) or (
                 element.parent and element.parent.name == 'style'):
             return
 

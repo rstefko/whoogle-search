@@ -1,3 +1,13 @@
+>[!WARNING]
+>
+>As of 16 January, 2025, Google seemingly no longer supports performing search queries without JavaScript enabled. This is a fundamental part of how Whoogle
+>works -- Whoogle requests the JavaScript-free search results, then filters out garbage from the results page and proxies all external content for the user.
+>
+>This is possibly a breaking change that will mean the end for Whoogle. I'll continue monitoring the status of their JS-free results and looking into workarounds,
+>and will make another post if a solution is found (or not).
+
+___
+
 ![Whoogle Search](docs/banner.png)
 
 [![Latest Release](https://img.shields.io/github/v/release/benbusby/whoogle-search)](https://github.com/benbusby/shoogle/releases)
@@ -115,7 +125,7 @@ ___
 
 ### [Fly.io](https://fly.io)
 
-You will need a [Fly.io](https://fly.io) account to deploy Whoogle. The [free allowances](https://fly.io/docs/about/pricing/#free-allowances) are enough for personal use.
+You will need a [Fly.io](https://fly.io) account to deploy Whoogle.
 
 #### Install the CLI: https://fly.io/docs/hands-on/installing/
 
@@ -131,6 +141,9 @@ To fix this, open the generated `fly.toml` file, set `services.internal_port` to
 
 Your app is now available at `https://<app-name>.fly.dev`.
 
+Notes:
+- Requires a [**PAID**](https://fly.io/docs/about/pricing/#free-allowances) Fly.io Account.
+
 ___
 
 ### [Koyeb](https://www.koyeb.com)
@@ -142,10 +155,17 @@ Use one of the following guides to install Whoogle on Koyeb:
 
 ___
 
+### [RepoCloud](https://repocloud.io)
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/?app_id=309)
+
+1. Sign up for a free [RepoCloud account](https://repocloud.io) and receive free credits to get started.
+2. Click "Deploy" to launch the app and access it instantly via your RepoCloud URL.
+___
+
 ### [pipx](https://github.com/pipxproject/pipx#install-pipx)
 Persistent install:
 
-`pipx install git+https://github.com/benbusby/whoogle-search.git`
+`pipx install https://github.com/benbusby/whoogle-search/archive/refs/heads/main.zip`
 
 Sandboxed temporary instance:
 
@@ -235,8 +255,11 @@ Description=Whoogle
 #Environment=WHOOGLE_ALT_WIKI=farside.link/wikiless
 #Environment=WHOOGLE_ALT_IMDB=farside.link/libremdb
 #Environment=WHOOGLE_ALT_QUORA=farside.link/quetre
+#Environment=WHOOGLE_ALT_SO=farside.link/anonymousoverflow
 # Load values from dotenv only
 #Environment=WHOOGLE_DOTENV=1
+# specify dotenv location if not in default location
+#Environment=WHOOGLE_DOTENV_PATH=<path/to>/whoogle.env
 Type=simple
 User=<username>
 # If installed as a package, add:
@@ -368,7 +391,7 @@ heroku container:release web
 heroku open
 ```
 
-This series of commands can take a while, but once you run it once, you shouldn't have to run it again. The final command, `heroku open` will launch a tab in your web browser, where you can test out Whoogle and even [set it as your primary search engine](https://github.com/benbusby/whoogle#set-whoogle-as-your-primary-search-engine).
+This series of commands can take a while, but once you run it once, you shouldn't have to run it again. The final command, `heroku open` will launch a tab in your web browser, where you can test out Whoogle and even [set it as your primary search engine](https://github.com/benbusby/whoogle-search#set-whoogle-as-your-primary-search-engine).
 You may also edit environment variables from your app’s Settings tab in the Heroku Dashboard.
 
 ___
@@ -383,7 +406,7 @@ To use the Kubernetes Helm Chart:
 1. Ensure you have [Helm](https://helm.sh/docs/intro/install/) `>=3.0.0` installed
 2. Clone this repository
 3. Update [charts/whoogle/values.yaml](./charts/whoogle/values.yaml) as desired
-4. Run `helm install whoogle ./charts/whoogle`
+4. Run `helm upgrade --install whoogle ./charts/whoogle`
 
 ___
 
@@ -407,6 +430,7 @@ There are a few optional environment variables available for customizing a Whoog
 | -------------------- | ----------------------------------------------------------------------------------------- |
 | WHOOGLE_URL_PREFIX   | The URL prefix to use for the whoogle instance (i.e. "/whoogle")                          |
 | WHOOGLE_DOTENV       | Load environment variables in `whoogle.env`                                               |
+| WHOOGLE_DOTENV_PATH  | The path to `whoogle.env` if not in default location                                      |
 | WHOOGLE_USER         | The username for basic auth. WHOOGLE_PASS must also be set if used.                       |
 | WHOOGLE_PASS         | The password for basic auth. WHOOGLE_USER must also be set if used.                       |
 | WHOOGLE_PROXY_USER   | The username of the proxy server.                                                         |
@@ -428,6 +452,7 @@ There are a few optional environment variables available for customizing a Whoog
 | WHOOGLE_ALT_WIKI     | The wikipedia.org alternative to use when site alternatives are enabled in the config. Set to "" to disable. |
 | WHOOGLE_ALT_IMDB     | The imdb.com alternative to use when site alternatives are enabled in the config. Set to "" to disable.  |
 | WHOOGLE_ALT_QUORA    | The quora.com alternative to use when site alternatives are enabled in the config. Set to "" to disable. |
+| WHOOGLE_ALT_SO       | The stackoverflow.com alternative to use when site alternatives are enabled in the config. Set to "" to disable. |
 | WHOOGLE_AUTOCOMPLETE | Controls visibility of autocomplete/search suggestions. Default on -- use '0' to disable. |
 | WHOOGLE_MINIMAL      | Remove everything except basic result cards from all search queries.                      |
 | WHOOGLE_CSP          | Sets a default set of 'Content-Security-Policy' headers                                   |
@@ -505,7 +530,7 @@ Browser settings:
         - Search string to use: `https://\<your whoogle url\>/search?q=%s`
   - [Alfred](https://www.alfredapp.com/) (Mac OS X)
 	  1. Go to `Alfred Preferences` > `Features` > `Web Search` and click `Add Custom Search`. Then configure these settings
-		   - Search URL: `https://\<your whoogle url\>/search?q={query}
+		   - Search URL: `https://\<your whoogle url\>/search?q={query}`
 		   - Title: `Whoogle for '{query}'` (or whatever you want)
 		   - Keyword: `whoogle`
 
@@ -597,6 +622,7 @@ server {
 	    proxy_set_header X-Forwarded-Proto $scheme;
 	    proxy_set_header Host $host;
 	    proxy_set_header X-NginX-Proxy true;
+	    proxy_set_header X-Forwarded-Host $http_host;
 	    proxy_pass http://localhost:5000;
 	}
 }
@@ -673,27 +699,13 @@ A lot of the app currently piggybacks on Google's existing support for fetching 
 
 | Website | Country | Language | Cloudflare |
 |-|-|-|-|
-| [https://search.albony.xyz](https://search.albony.xyz/) | 🇮🇳 IN | Multi-choice |  |
 | [https://search.garudalinux.org](https://search.garudalinux.org) | 🇫🇮 FI | Multi-choice | ✅ |
-| [https://search.dr460nf1r3.org](https://search.dr460nf1r3.org) | 🇩🇪 DE | Multi-choice | ✅ |
-| [https://s.tokhmi.xyz](https://s.tokhmi.xyz) | 🇺🇸 US | Multi-choice | ✅ |
 | [https://search.sethforprivacy.com](https://search.sethforprivacy.com) | 🇩🇪 DE | English | |
-| [https://whoogle.dcs0.hu](https://whoogle.dcs0.hu) | 🇭🇺 HU | Multi-choice | |
-| [https://gowogle.voring.me](https://gowogle.voring.me) | 🇺🇸 US | Multi-choice | |
 | [https://whoogle.privacydev.net](https://whoogle.privacydev.net) | 🇫🇷 FR | English | |
 | [https://wg.vern.cc](https://wg.vern.cc) | 🇺🇸 US | English |  |
-| [https://whoogle.hxvy0.gq](https://whoogle.hxvy0.gq) | 🇨🇦 CA | Turkish Only | ✅ |
-| [https://whoogle.hostux.net](https://whoogle.hostux.net) | 🇫🇷 FR | Multi-choice | |
 | [https://whoogle.lunar.icu](https://whoogle.lunar.icu) | 🇩🇪 DE | Multi-choice | ✅ |
-| [https://wgl.frail.duckdns.org](https://wgl.frail.duckdns.org) | 🇧🇷 BR | Multi-choice | |
-| [https://whoogle.no-logs.com](https://whoogle.no-logs.com/) | 🇸🇪 SE | Multi-choice | |
-| [https://whoogle.ftw.lol](https://whoogle.ftw.lol) | 🇩🇪 DE | Multi-choice | |
-| [https://whoogle-search--replitcomreside.repl.co](https://whoogle-search--replitcomreside.repl.co) | 🇺🇸 US | English |  |
-| [https://search.notrustverify.ch](https://search.notrustverify.ch) | 🇨🇭 CH | Multi-choice |  |
-| [https://whoogle.datura.network](https://whoogle.datura.network) | 🇩🇪 DE | Multi-choice | |
-| [https://whoogle.yepserver.xyz](https://whoogle.yepserver.xyz) | 🇺🇦 UA | Multi-choice | |
-| [https://search.nezumi.party](https://search.nezumi.party) | 🇮🇹 IT | Multi-choice | |
-| [https://search.snine.nl](https://search.snine.nl) | 🇳🇱 NL | Mult-choice | ✅ |
+| [https://whoogle.4040940.xyz/](https://whoogle.4040940.xyz/) | 🇺🇸 US | English | ✅ |
+
 
 
 * A checkmark in the "Cloudflare" category here refers to the use of the reverse proxy, [Cloudflare](https://cloudflare.com). The checkmark will not be listed for a site which uses Cloudflare DNS but rather the proxying service which grants Cloudflare the ability to monitor traffic to the website.
